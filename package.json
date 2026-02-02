@@ -1,0 +1,38 @@
+{
+  "name": "solana-agent-kit",
+  "version": "1.0.0",
+  "description": "A lightweight toolkit for AI agents to interact with Solana - swap tokens, manage wallets, stake SOL",
+  "main": "index.js",
+  "bin": {
+    "solana-agent": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node test/test.js",
+    "cli": "node src/cli.js"
+  },
+  "keywords": [
+    "solana",
+    "ai",
+    "agent",
+    "wallet",
+    "swap",
+    "jupiter",
+    "defi",
+    "blockchain"
+  ],
+  "author": "Echo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/echo-agent/solana-agent-kit"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.0",
+    "@solana/web3.js": "^1.98.0",
+    "bs58": "^6.0.0",
+    "dotenv": "^16.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
