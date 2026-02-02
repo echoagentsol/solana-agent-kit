@@ -4,7 +4,8 @@
   "description": "A lightweight toolkit for AI agents to interact with Solana - swap tokens, manage wallets, stake SOL",
   "main": "index.js",
   "bin": {
-    "solana-agent": "./src/cli.js"
+    "solana-agent": "./src/cli.js",
+    "solana-agent-server": "./src/server.js"
   },
   "scripts": {
     "test": "node test/test.js",
