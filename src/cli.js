@@ -17,6 +17,7 @@ const { Wallet } = require('./wallet');
 const { Swapper, TOKENS } = require('./swap');
 const { Transfer } = require('./transfer');
 const { Staking, VALIDATORS } = require('./stake');
+const Yields = require('./yields');
 const path = require('path');
 const fs = require('fs');
 
@@ -266,6 +267,102 @@ async function main() {
         break;
       }
 
+      case 'yields': {
+        switch (subcommand) {
+          case 'list': {
+            const protocol = args.find((a, i) => args[i-1] === '--protocol');
+            const asset = args.find((a, i) => args[i-1] === '--asset');
+            const minApy = args.find((a, i) => args[i-1] === '--min-apy');
+            
+            console.error('Fetching yields from SolanaYield...');
+            const yields = await Yields.getYields({ 
+              protocol, 
+              asset,
+              minApy: minApy ? parseFloat(minApy) : undefined
+            });
+            console.log(JSON.stringify({
+              count: yields.length,
+              yields: yields.slice(0, 20)
+            }, null, 2));
+            break;
+          }
+
+          case 'top': {
+            const limit = parseInt(args[2]) || 10;
+            console.error(`Fetching top ${limit} yields...`);
+            const yields = await Yields.getTopYields(limit);
+            console.log(JSON.stringify({
+              count: yields.length,
+              yields
+            }, null, 2));
+            break;
+          }
+
+          case 'best': {
+            const asset = args[2];
+            if (!asset) {
+              console.error('Usage: solana-agent yields best <asset>');
+              console.error('Example: solana-agent yields best SOL');
+              process.exit(1);
+            }
+            console.error(`Finding best yield for ${asset}...`);
+            const best = await Yields.findBestYield(asset);
+            if (best) {
+              console.log(JSON.stringify(best, null, 2));
+            } else {
+              console.log(JSON.stringify({ error: `No yields found for ${asset}` }));
+            }
+            break;
+          }
+
+          case 'compare': {
+            const asset = args[2];
+            if (!asset) {
+              console.error('Usage: solana-agent yields compare <asset>');
+              process.exit(1);
+            }
+            console.error(`Comparing yields for ${asset} across protocols...`);
+            const comparison = await Yields.compareYields(asset);
+            console.log(JSON.stringify(comparison, null, 2));
+            break;
+          }
+
+          case 'optimize': {
+            const riskProfile = args.find((a, i) => args[i-1] === '--risk') || 'moderate';
+            console.error(`Running portfolio optimization (${riskProfile} risk)...`);
+            const strategy = await Yields.optimize({
+              positions: [],
+              riskProfile,
+              maxPositions: 5
+            });
+            console.log(JSON.stringify(strategy, null, 2));
+            break;
+          }
+
+          case 'autopilot': {
+            const riskProfile = args.find((a, i) => args[i-1] === '--risk') || 'moderate';
+            console.error('Running autopilot analysis...');
+            const decision = await Yields.autopilot({
+              portfolio: {},
+              preferences: { riskTolerance: riskProfile }
+            });
+            console.log(JSON.stringify(decision, null, 2));
+            break;
+          }
+
+          case 'protocols': {
+            const protocols = await Yields.getProtocols();
+            console.log(JSON.stringify(protocols, null, 2));
+            break;
+          }
+
+          default:
+            console.error('Unknown yields command. Use: list, top, best, compare, optimize, autopilot, protocols');
+            process.exit(1);
+        }
+        break;
+      }
+
       case 'help':
       default:
         console.log(`
@@ -290,6 +387,14 @@ Commands:
   stake unstake <stake_account>        Start unstaking
   stake withdraw <stake_account>       Withdraw unstaked SOL
   stake validators                     List known validators
+
+  yields list [--protocol X] [--asset Y]  Get DeFi yields
+  yields top [limit]                      Top yields by APY
+  yields best <asset>                     Best yield for asset
+  yields compare <asset>                  Compare yields across protocols
+  yields optimize [--risk moderate]       Optimize portfolio allocation
+  yields autopilot [--risk moderate]      AI-powered yield decisions
+  yields protocols                        List supported protocols
 
   tokens                     List known token symbols
 

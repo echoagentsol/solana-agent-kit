@@ -24,12 +24,14 @@ const { Wallet, DEFAULT_RPC } = require('./src/wallet');
 const { Swapper, TOKENS } = require('./src/swap');
 const { Transfer } = require('./src/transfer');
 const { Staking, VALIDATORS } = require('./src/stake');
+const Yields = require('./src/yields');
 
 module.exports = {
   Wallet,
   Swapper,
   Transfer,
   Staking,
+  Yields,
   TOKENS,
   VALIDATORS,
   DEFAULT_RPC
