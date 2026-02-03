@@ -143,6 +143,93 @@ if [ $(echo "$BALANCE > 1" | bc) -eq 1 ]; then
 fi
 ```
 
+## AgentDEX Integration
+
+[AgentDEX](https://agentdex.com) provides advanced swap routing, limit orders, and portfolio tracking designed specifically for AI agents. The integration lives in `src/integrations/agentdex.ts`.
+
+### Setup
+
+```javascript
+const { AgentDEXClient } = require('solana-agent-kit');
+
+const dex = new AgentDEXClient({
+  apiKey: 'adx_your_api_key',        // Required — get one at agentdex.com
+  // baseUrl: 'https://api.agentdex.com', // Optional override
+});
+```
+
+### Get a Quote
+
+```javascript
+const quote = await dex.getQuote(
+  'So11111111111111111111111111111111111111112',  // SOL
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+  1_000_000_000, // 1 SOL in lamports
+  50,            // 0.5% slippage (basis points)
+);
+console.log(`Expected output: ${quote.outAmount} USDC`);
+```
+
+### Execute a Swap
+
+```javascript
+const result = await dex.swap(
+  'So11111111111111111111111111111111111111112',
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  1_000_000_000,
+);
+console.log(`TX: ${result.signature}`);
+```
+
+### Portfolio Tracking
+
+```javascript
+const portfolio = await dex.getPortfolio('YourWalletPublicKey...');
+console.log(`Total value: $${portfolio.totalUsdValue}`);
+for (const token of portfolio.tokens) {
+  console.log(`  ${token.symbol}: ${token.balance} ($${token.usdValue})`);
+}
+```
+
+### Token Prices
+
+```javascript
+// All tracked prices
+const allPrices = await dex.getPrices();
+
+// Specific token
+const [solPrice] = await dex.getPrices(['So11111111111111111111111111111111111111112']);
+console.log(`SOL: $${solPrice.priceUsd}`);
+```
+
+### Limit Orders
+
+```javascript
+// Place a limit order
+const order = await dex.createLimitOrder(
+  'So11111111111111111111111111111111111111112',
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  1_000_000_000,
+  180.50, // target price
+);
+console.log(`Order placed: ${order.id}`);
+
+// List active orders
+const orders = await dex.getLimitOrders();
+
+// Cancel an order
+await dex.cancelLimitOrder(order.id);
+```
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `AGENTDEX_API_KEY` | Your AgentDEX API key (`adx_xxx`) |
+| `AGENTDEX_BASE_URL` | Custom API base URL (optional) |
+
+---
+
 ## License
 
 MIT
